@@ -33,8 +33,8 @@ type BankHooks interface {
 	BlockBeforeSend(ctx sdk.Context, from, to sdk.AccAddress, amount sdk.Coins) error // Must be before any send is executed
 }
 
-// CommunityPoolKeeper defines the contract needed to be fulfilled for community pool interactions.
-type CommunityPoolKeeper interface {
+// DistrKeeper defines the contract needed to be fulfilled for community pool interactions.
+type DistrKeeper interface {
 	FundCommunityPool(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error
 }
 

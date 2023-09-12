@@ -84,7 +84,7 @@ func (k Keeper) chargeForCreateDenom(ctx sdk.Context, creatorAddr string) (err e
 			return err
 		}
 
-		if err := k.communityPoolKeeper.FundCommunityPool(ctx, params.DenomCreationFee, accAddr); err != nil {
+		if err := k.distrKeeper.FundCommunityPool(ctx, params.DenomCreationFee, accAddr); err != nil {
 			return err
 		}
 	}
