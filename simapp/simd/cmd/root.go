@@ -33,6 +33,8 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
+
+	tokenfactorycli "github.com/osmosis-labs/tokenfactory/client/cli"
 )
 
 // NewRootCmd creates a new root command for simd. It is called once in the
@@ -194,6 +196,8 @@ func queryCommand() *cobra.Command {
 		authcmd.QueryTxCmd(),
 	)
 
+	cmd.AddCommand(tokenfactorycli.GetQueryCmd())
+
 	simapp.ModuleBasics.AddQueryCommands(cmd)
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
@@ -219,8 +223,10 @@ func txCommand() *cobra.Command {
 		authcmd.GetEncodeCommand(),
 		authcmd.GetDecodeCommand(),
 	)
-
 	simapp.ModuleBasics.AddTxCommands(cmd)
+
+	cmd.AddCommand(tokenfactorycli.GetTxCmd())
+
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd

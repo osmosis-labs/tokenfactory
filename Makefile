@@ -50,60 +50,67 @@ ifeq ($(LEDGER_ENABLED),true)
   endif
 endif
 
-ifeq (cleveldb,$(findstring cleveldb,$(OSMOSIS_BUILD_OPTIONS)))
-  build_tags += gcc
-else ifeq (rocksdb,$(findstring rocksdb,$(OSMOSIS_BUILD_OPTIONS)))
+ifeq (cleveldb,$(findstring cleveldb,$(COSMOS_BUILD_OPTIONS)))
   build_tags += gcc
 endif
-build_tags += $(BUILD_TAGS)
-build_tags := $(strip $(build_tags))
+
+ifeq (secp,$(findstring secp,$(COSMOS_BUILD_OPTIONS)))
+  build_tags += libsecp256k1_sdk
+endif
 
 whitespace :=
-whitespace := $(whitespace) $(whitespace)
+whitespace += $(whitespace)
 comma := ,
 build_tags_comma_sep := $(subst $(whitespace),$(comma),$(build_tags))
 
 # process linker flags
 
-ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=osmosis \
-		  -X github.com/cosmos/cosmos-sdk/version.AppName=osmosisd \
+ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=sim \
+		  -X github.com/cosmos/cosmos-sdk/version.AppName=simd \
 		  -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
 		  -X github.com/cosmos/cosmos-sdk/version.Commit=$(COMMIT) \
-		  -X "github.com/cosmos/cosmos-sdk/version.BuildTags=$(build_tags_comma_sep)"
+		  -X "github.com/cosmos/cosmos-sdk/version.BuildTags=$(build_tags_comma_sep)" \
+			-X github.com/tendermint/tendermint/version.TMCoreSemVer=$(TMVERSION)
 
-ifeq (cleveldb,$(findstring cleveldb,$(OSMOSIS_BUILD_OPTIONS)))
+# DB backend selection
+ifeq (cleveldb,$(findstring cleveldb,$(COSMOS_BUILD_OPTIONS)))
   ldflags += -X github.com/cosmos/cosmos-sdk/types.DBBackend=cleveldb
-else ifeq (rocksdb,$(findstring rocksdb,$(OSMOSIS_BUILD_OPTIONS)))
+endif
+ifeq (badgerdb,$(findstring badgerdb,$(COSMOS_BUILD_OPTIONS)))
+  ldflags += -X github.com/cosmos/cosmos-sdk/types.DBBackend=badgerdb
+  BUILD_TAGS += badgerdb
+endif
+# handle rocksdb
+ifeq (rocksdb,$(findstring rocksdb,$(COSMOS_BUILD_OPTIONS)))
+  CGO_ENABLED=1
+  BUILD_TAGS += rocksdb
   ldflags += -X github.com/cosmos/cosmos-sdk/types.DBBackend=rocksdb
 endif
-ifeq (,$(findstring nostrip,$(OSMOSIS_BUILD_OPTIONS)))
-  ldflags += -w -s
+# handle boltdb
+ifeq (boltdb,$(findstring boltdb,$(COSMOS_BUILD_OPTIONS)))
+  BUILD_TAGS += boltdb
+  ldflags += -X github.com/cosmos/cosmos-sdk/types.DBBackend=boltdb
 endif
-ifeq ($(LINK_STATICALLY),true)
-	ldflags += -linkmode=external -extldflags "-Wl,-z,muldefs -static"
+
+ifeq (,$(findstring nostrip,$(COSMOS_BUILD_OPTIONS)))
+  ldflags += -w -s
 endif
 ldflags += $(LDFLAGS)
 ldflags := $(strip $(ldflags))
 
+build_tags += $(BUILD_TAGS)
+build_tags := $(strip $(build_tags))
+
 BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags)'
 # check for nostrip option
-ifeq (,$(findstring nostrip,$(OSMOSIS_BUILD_OPTIONS)))
+ifeq (,$(findstring nostrip,$(COSMOS_BUILD_OPTIONS)))
   BUILD_FLAGS += -trimpath
 endif
 
-# Note that this skips certain tests that are not supported on WSL
-# This is a workaround to enable quickly running full unit test suite locally
-# on WSL without failures. The failures are stemming from trying to upload
-# wasm code. An OS permissioning issue.
-is_wsl := $(shell uname -a | grep -i Microsoft)
-ifeq ($(is_wsl),)
-    # Not in WSL
-    SKIP_WASM_WSL_TESTS := "false"
-else
-    # In WSL
-    SKIP_WASM_WSL_TESTS := "true"
-endif
+all: tools build lint test
 
+# The below include contains the tools and runsim targets.
+include contrib/devtools/Makefile
 ###############################################################################
 ###                                  Build                                  ###
 ###############################################################################
@@ -176,9 +183,6 @@ proto:
 	@echo "=========== Generate Complete ============"
 	@echo
 
-test:
-	@go test -v ./x/...
-
 docs:
 	@echo
 	@echo "=========== Generate Message ============"
@@ -216,3 +220,120 @@ proto-image-build:
 
 proto-image-push:
 	docker push $(protoImageName)
+
+
+
+###############################################################################
+###                           Tests & Simulation                            ###
+###############################################################################
+
+test: test-unit
+test-all: test-unit test-ledger-mock test-race test-cover
+
+TEST_PACKAGES=./...
+TEST_TARGETS := test-unit test-unit-amino test-unit-proto test-ledger-mock test-race test-ledger test-race
+
+# Test runs-specific rules. To add a new test target, just add
+# a new rule, customise ARGS or TEST_PACKAGES ad libitum, and
+# append the new rule to the TEST_TARGETS list.
+test-unit: ARGS=-tags='cgo ledger test_ledger_mock norace'
+test-unit-amino: ARGS=-tags='ledger test_ledger_mock test_amino norace'
+test-ledger: ARGS=-tags='cgo ledger norace'
+test-ledger-mock: ARGS=-tags='ledger test_ledger_mock norace'
+test-race: ARGS=-race -tags='cgo ledger test_ledger_mock'
+test-race: TEST_PACKAGES=$(PACKAGES_NOSIMULATION)
+$(TEST_TARGETS): run-tests
+
+# check-* compiles and collects tests without running them
+# note: go test -c doesn't support multiple packages yet (https://github.com/golang/go/issues/15513)
+CHECK_TEST_TARGETS := check-test-unit check-test-unit-amino
+check-test-unit: ARGS=-tags='cgo ledger test_ledger_mock norace'
+check-test-unit-amino: ARGS=-tags='ledger test_ledger_mock test_amino norace'
+$(CHECK_TEST_TARGETS): EXTRA_ARGS=-run=none
+$(CHECK_TEST_TARGETS): run-tests
+
+run-tests:
+ifneq (,$(shell which tparse 2>/dev/null))
+	go test -mod=readonly -json $(ARGS) $(EXTRA_ARGS) $(TEST_PACKAGES) | tparse
+else
+	go test -mod=readonly $(ARGS)  $(EXTRA_ARGS) $(TEST_PACKAGES)
+endif
+
+.PHONY: run-tests test test-all $(TEST_TARGETS)
+
+test-sim-nondeterminism:
+	@echo "Running non-determinism test..."
+	@go test -mod=readonly $(SIMAPP) -run TestAppStateDeterminism -Enabled=true \
+		-NumBlocks=100 -BlockSize=200 -Commit=true -Period=0 -v -timeout 24h
+
+test-sim-custom-genesis-fast:
+	@echo "Running custom genesis simulation..."
+	@echo "By default, ${HOME}/.gaiad/config/genesis.json will be used."
+	@go test -mod=readonly $(SIMAPP) -run TestFullAppSimulation -Genesis=${HOME}/.gaiad/config/genesis.json \
+		-Enabled=true -NumBlocks=100 -BlockSize=200 -Commit=true -Seed=99 -Period=5 -v -timeout 24h
+
+test-sim-import-export: runsim
+	@echo "Running application import/export simulation. This may take several minutes..."
+	@$(BINDIR)/runsim -Jobs=4 -SimAppPkg=$(SIMAPP) -ExitOnFail 50 5 TestAppImportExport
+
+test-sim-after-import: runsim
+	@echo "Running application simulation-after-import. This may take several minutes..."
+	@$(BINDIR)/runsim -Jobs=4 -SimAppPkg=$(SIMAPP) -ExitOnFail 50 5 TestAppSimulationAfterImport
+
+test-sim-custom-genesis-multi-seed: runsim
+	@echo "Running multi-seed custom genesis simulation..."
+	@echo "By default, ${HOME}/.gaiad/config/genesis.json will be used."
+	@$(BINDIR)/runsim -Genesis=${HOME}/.gaiad/config/genesis.json -SimAppPkg=$(SIMAPP) -ExitOnFail 400 5 TestFullAppSimulation
+
+test-sim-multi-seed-long: runsim
+	@echo "Running long multi-seed application simulation. This may take awhile!"
+	@$(BINDIR)/runsim -Jobs=4 -SimAppPkg=$(SIMAPP) -ExitOnFail 500 50 TestFullAppSimulation
+
+test-sim-multi-seed-short: runsim
+	@echo "Running short multi-seed application simulation. This may take awhile!"
+	@$(BINDIR)/runsim -Jobs=4 -SimAppPkg=$(SIMAPP) -ExitOnFail 50 10 TestFullAppSimulation
+
+test-sim-benchmark-invariants:
+	@echo "Running simulation invariant benchmarks..."
+	@go test -mod=readonly $(SIMAPP) -benchmem -bench=BenchmarkInvariants -run=^$ \
+	-Enabled=true -NumBlocks=1000 -BlockSize=200 \
+	-Period=1 -Commit=true -Seed=57 -v -timeout 24h
+
+.PHONY: \
+test-sim-nondeterminism \
+test-sim-custom-genesis-fast \
+test-sim-import-export \
+test-sim-after-import \
+test-sim-custom-genesis-multi-seed \
+test-sim-multi-seed-short \
+test-sim-multi-seed-long \
+test-sim-benchmark-invariants
+
+SIM_NUM_BLOCKS ?= 500
+SIM_BLOCK_SIZE ?= 200
+SIM_COMMIT ?= true
+
+test-sim-benchmark:
+	@echo "Running application benchmark for numBlocks=$(SIM_NUM_BLOCKS), blockSize=$(SIM_BLOCK_SIZE). This may take awhile!"
+	@go test -mod=readonly -benchmem -run=^$$ $(SIMAPP) -bench ^BenchmarkFullAppSimulation$$  \
+		-Enabled=true -NumBlocks=$(SIM_NUM_BLOCKS) -BlockSize=$(SIM_BLOCK_SIZE) -Commit=$(SIM_COMMIT) -timeout 24h
+
+test-sim-profile:
+	@echo "Running application benchmark for numBlocks=$(SIM_NUM_BLOCKS), blockSize=$(SIM_BLOCK_SIZE). This may take awhile!"
+	@go test -mod=readonly -benchmem -run=^$$ $(SIMAPP) -bench ^BenchmarkFullAppSimulation$$ \
+		-Enabled=true -NumBlocks=$(SIM_NUM_BLOCKS) -BlockSize=$(SIM_BLOCK_SIZE) -Commit=$(SIM_COMMIT) -timeout 24h -cpuprofile cpu.out -memprofile mem.out
+
+.PHONY: test-sim-profile test-sim-benchmark
+
+test-cover:
+	@export VERSION=$(VERSION); bash -x contrib/test_cover.sh
+.PHONY: test-cover
+
+test-rosetta:
+	docker build -t rosetta-ci:latest -f contrib/rosetta/node/Dockerfile .
+	docker-compose -f contrib/rosetta/docker-compose.yaml up --abort-on-container-exit --exit-code-from test_rosetta --build
+.PHONY: test-rosetta
+
+benchmark:
+	@go test -mod=readonly -bench=. $(PACKAGES_NOSIMULATION)
+.PHONY: benchmark
