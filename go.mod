@@ -4,7 +4,6 @@ go 1.20
 
 require (
 	cosmossdk.io/errors v1.0.0
-	github.com/CosmWasm/wasmvm v1.2.1
 	github.com/cosmos/cosmos-proto v1.0.0-beta.2
 	github.com/cosmos/cosmos-sdk v0.45.16
 	github.com/gogo/protobuf v1.3.3
