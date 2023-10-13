@@ -153,9 +153,9 @@ for (( i=2; i <= $NUM_NODES; i++ )); do
     node_name="${NODE_PREFIX}${i}"
     config_toml="${STATE}/${node_name}/config/config.toml"
     genesis_json="${STATE}/${node_name}/config/genesis.json"
-
+    echo $MAIN_NODE_ID
     # add the main node as a persistent peer
-    sed -i -E "s|persistent_peers=.*|persistent_peers=\"${MAIN_NODE_ID}\"|g" $config_toml
+    sed -i -E "s|persistent_peers = .*|persistent_peers = \"${MAIN_NODE_ID}\"|g" $config_toml
     # copy the main node's genesis to the peer nodes to ensure they all have the same genesis
     cp $MAIN_GENESIS $genesis_json
 
