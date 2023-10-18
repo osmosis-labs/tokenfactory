@@ -145,5 +145,6 @@ require (
 // use cosmos-compatible protobufs
 replace (
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
+	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20200815110645-5c35d600f0ca // indirect
 	github.com/tendermint/tendermint => github.com/cometbft/cometbft v0.34.29
 )
