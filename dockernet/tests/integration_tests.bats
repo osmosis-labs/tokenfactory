@@ -1,5 +1,6 @@
 load "bats/bats-support/load.bash"
 load "bats/bats-assert/load.bash"
+source dockernet/config.sh
 
 ##############################################################################################
 ######                              SETUP TESTS                                         ######
