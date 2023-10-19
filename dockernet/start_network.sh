@@ -2,6 +2,8 @@
 
 set -eu 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+echo $SCRIPT_DIR
+echo $BASH_SOURCE
 source ${SCRIPT_DIR}/config.sh
 
 # cleanup any stale state
