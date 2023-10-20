@@ -34,8 +34,8 @@ set_simd_genesis() {
     jq '.app_state.staking.params.unbonding_time = $newVal' --arg newVal "$UNBONDING_TIME" $genesis_config > json.tmp && mv json.tmp $genesis_config
     jq '.app_state.gov.deposit_params.max_deposit_period = $newVal' --arg newVal "$MAX_DEPOSIT_PERIOD" $genesis_config > json.tmp && mv json.tmp $genesis_config
     jq '.app_state.gov.voting_params.voting_period = $newVal' --arg newVal "$VOTING_PERIOD" $genesis_config > json.tmp && mv json.tmp $genesis_config
-    jq '.app_state["tokenfactory"]["params"]["denom_creation_fee"][0]["denom"]="stake"' $genesis_config > json.tmp && mv json.tmp $genesis_config
-    jq '.app_state["tokenfactory"]["params"]["denom_creation_fee"][0]["amount"]="1000000"' $genesis_config > json.tmp && mv json.tmp $genesis_config
+    jq '.app_state["tokenfactory"]["params"]["denom_creation_fee"][0]["denom"]=$newVal' --arg newVal "$CREATION_FEE_DENOM" $genesis_config > json.tmp && mv json.tmp $genesis_config
+    jq '.app_state["tokenfactory"]["params"]["denom_creation_fee"][0]["amount"]=$newVal' --arg newVal "$CREATION_FEE_AMOUNT" $genesis_config > json.tmp && mv json.tmp $genesis_config
 }
 
 MAIN_ID=1 # Node responsible for genesis and persistent_peers
@@ -139,15 +139,15 @@ echo "$USER_MNEMONIC" | $MAIN_CMD keys add $USER_ACCT --recover --keyring-backen
 USER_ADDRESS=$($MAIN_CMD keys show $USER_ACCT --keyring-backend test -a)
 $MAIN_CMD add-genesis-account ${USER_ADDRESS} ${USER_TOKENS}${DENOM}
 
-# add alice with 100stake
+# add alice with zero fee
 $MAIN_CMD keys add alice --keyring-backend=test >> $KEYS_LOGS 2>&1
 ALICE_ADDRESS=$($MAIN_CMD keys show alice --keyring-backend test -a)
 $MAIN_CMD add-genesis-account ${ALICE_ADDRESS} ${USER_TOKENS}${DENOM}
 
-# add bob with 2000000stake
+# add bob with 2000000 fee tokens
 $MAIN_CMD keys add bob --keyring-backend=test >> $KEYS_LOGS 2>&1
 BOB_ADDRESS=$($MAIN_CMD keys show bob --keyring-backend test -a)
-$MAIN_CMD add-genesis-account ${BOB_ADDRESS} 2000000stake
+$MAIN_CMD add-genesis-account ${BOB_ADDRESS} ${USER_TOKENS}${DENOM},${CREATION_FEE_AMOUNT}${CREATION_FEE_DENOM}
 
 # Only collect the validator genesis txs for host chains
 $MAIN_CMD collect-gentxs &> /dev/null

@@ -70,8 +70,8 @@ SIMD_DENOM="stake"
 SIMD_RPC_PORT=26657
 SIMD_BINARY="$DOCKERNET_HOME/../build/simd"
 SIMD_MAIN_CMD="$SIMD_BINARY --home $DOCKERNET_HOME/state/${SIMD_NODE_PREFIX}1"
-CREATION_FEE_DENOM="stake"
-CREATION_FEE_AMOUNT="1000000"
+CREATION_FEE_DENOM="osmo"
+CREATION_FEE_AMOUNT=1000000
 
 CSLEEP() {
   for i in $(seq $1); do
@@ -119,4 +119,16 @@ GETBAL() {
 
 GETSTAKE() {
   tail -n 2 | head -n 1 | grep -o -E '[0-9]+' | head -n 1
+}
+
+BOB_ADDRESS() { 
+  # After an upgrade, the keys query can sometimes print migration info, 
+  # so we need to filter by valid addresses using the prefix
+  $SIMD_MAIN_CMD keys show bob --keyring-backend test -a | grep $SIMD_ADDRESS_PREFIX
+}
+
+ALICE_ADDRESS() { 
+  # After an upgrade, the keys query can sometimes print migration info, 
+  # so we need to filter by valid addresses using the prefix
+  $SIMD_MAIN_CMD keys show alice --keyring-backend test -a | grep $SIMD_ADDRESS_PREFIX
 }
