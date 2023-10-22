@@ -52,3 +52,60 @@ TRANSFER_AMOUNT=50
   assert_equal "$(BOB_ADDRESS)" "$ADMIN"
 }
 
+@test "Test mint & burn & transfer token" {
+  # get denom of token that we created before
+  DENOM=$($SIMD_MAIN_CMD q tokenfactory denoms-from-creator $(BOB_ADDRESS) | GETDENOM)
+  echo $DENOM
+
+  # get balance of bob 
+  bob_balance_start=$($SIMD_MAIN_CMD  q bank balances $(BOB_ADDRESS) --denom $DENOM   | GETBAL)
+
+  # mint token 
+  $SIMD_MAIN_CMD tx tokenfactory mint $MINT_AMOUNT$DENOM --from bob -y --gas auto
+
+  sleep 10
+
+  # get bob balances after minting
+  bob_balance_after_minting=$($SIMD_MAIN_CMD  q bank balances $(BOB_ADDRESS) --denom $DENOM   | GETBAL)
+  bob_balance_mint_diff=$(($bob_balance_after_minting - $bob_balance_start))
+  assert_equal "$bob_balance_mint_diff" "$MINT_AMOUNT"
+
+  # burn token
+  $SIMD_MAIN_CMD tx tokenfactory burn $BURN_AMOUNT$DENOM --from bob -y --gas auto
+
+  sleep 10
+
+  # get bob balances after burning
+  bob_balance_after_burning=$($SIMD_MAIN_CMD  q bank balances $(BOB_ADDRESS) --denom $DENOM   | GETBAL)
+  bob_balance_burn_diff=$(($bob_balance_after_minting - $bob_balance_after_burning))
+  assert_equal "$bob_balance_burn_diff" "$BURN_AMOUNT"
+
+  # transfer to alice
+  $SIMD_MAIN_CMD tx bank send $(BOB_ADDRESS) $(ALICE_ADDRESS) $TRANSFER_AMOUNT$DENOM --from bob -y --gas auto
+
+  sleep 10
+
+  # get alice balances
+  alice_balance=$($SIMD_MAIN_CMD  q bank balances $(ALICE_ADDRESS) --denom $DENOM   | GETBAL)
+  assert_equal "$alice_balance" "$TRANSFER_AMOUNT"
+}
+
+@test "test change admin" {
+  # get denom of token that we created before
+  DENOM=$($SIMD_MAIN_CMD q tokenfactory denoms-from-creator $(BOB_ADDRESS) | GETDENOM)
+
+  $SIMD_MAIN_CMD tx tokenfactory change-admin $DENOM $(ALICE_ADDRESS) --from bob -y --gas auto
+  sleep 10
+
+  # get denom metadata
+  ADMIN=$($SIMD_MAIN_CMD q tokenfactory denom-authority-metadata $DENOM | GETADMIN)
+  assert_equal "$(ALICE_ADDRESS)" "$ADMIN"
+
+  # From now alice can burn her token
+  $SIMD_MAIN_CMD tx tokenfactory burn $BURN_AMOUNT$DENOM --from alice -y --gas auto
+  sleep 10
+
+  # get alice balances
+  alice_balance=$($SIMD_MAIN_CMD  q bank balances $(ALICE_ADDRESS) --denom $DENOM   | GETBAL)
+  assert_equal "$alice_balance" "0"
+}
