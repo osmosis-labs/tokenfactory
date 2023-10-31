@@ -7,13 +7,13 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
-	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/osmosis-labs/tokenfactory/keeper"
 	"github.com/osmosis-labs/tokenfactory/types"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 )
 
 // Simulation operation weights constants
@@ -21,6 +21,8 @@ const (
 	OpWeightMsgCreateDenom = "op_weight_msg_create_denom" //nolint:gosec
 	OpWeightMsgMintDenom   = "op_weight_msg_mint_denom"   //nolint:gosec
 	OpWeightMsgBurnDenom   = "op_weight_msg_burn_denom"   //nolint:gosec
+	DefaultWeightMsgSend      = 100                       // from simappparams.DefaultWeightMsgSend
+	DefaultWeightMsgMultiSend = 10                        // from simappparams.DefaultWeightMsgMultiSend
 )
 
 // WeightedOperations returns all the operations from the module with their respective weights
@@ -36,17 +38,17 @@ func WeightedOperations(
 
 	appParams.GetOrGenerate(cdc, OpWeightMsgCreateDenom, &weightMsgCreateDenom, nil,
 		func(_ *rand.Rand) {
-			weightMsgCreateDenom = simappparams.DefaultWeightMsgSend
+			weightMsgCreateDenom = DefaultWeightMsgSend
 		},
 	)
 	appParams.GetOrGenerate(cdc, OpWeightMsgMintDenom, &weightMsgMintDenom, nil,
 		func(_ *rand.Rand) {
-			weightMsgMintDenom = simappparams.DefaultWeightMsgSend
+			weightMsgMintDenom = DefaultWeightMsgSend
 		},
 	)
 	appParams.GetOrGenerate(cdc, OpWeightMsgMintDenom, &weightMsgMintDenom, nil,
 		func(_ *rand.Rand) {
-			weightMsgBurnDenom = simappparams.DefaultWeightMsgSend
+			weightMsgBurnDenom = DefaultWeightMsgSend
 		},
 	)
 
@@ -86,7 +88,7 @@ func SimulateMsgCreateDenom(ak types.AccountKeeper, bk types.BankKeeper, k keepe
 		txCtx := simulation.OperationInput{
 			R:             r,
 			App:           app,
-			TxGen:         simappparams.MakeTestEncodingConfig().TxConfig,
+			TxGen:         moduletestutil.MakeTestEncodingConfig().TxConfig,
 			Cdc:           nil,
 			Msg:           msg,
 			MsgType:       msg.Type(),
@@ -128,7 +130,7 @@ func SimulateMsgMintDenom(ak types.AccountKeeper, bk types.BankKeeper, k keeper.
 		txCtx := simulation.OperationInput{
 			R:             r,
 			App:           app,
-			TxGen:         simappparams.MakeTestEncodingConfig().TxConfig,
+			TxGen:         moduletestutil.MakeTestEncodingConfig().TxConfig,
 			Cdc:           nil,
 			Msg:           msg,
 			MsgType:       msg.Type(),
@@ -177,7 +179,7 @@ func SimulateMsgBurnDenom(ak types.AccountKeeper, bk types.BankKeeper, k keeper.
 		txCtx := simulation.OperationInput{
 			R:             r,
 			App:           app,
-			TxGen:         simappparams.MakeTestEncodingConfig().TxConfig,
+			TxGen:         moduletestutil.MakeTestEncodingConfig().TxConfig,
 			Cdc:           nil,
 			Msg:           msg,
 			MsgType:       msg.Type(),
@@ -222,7 +224,7 @@ func SimulateMsgChangeAdmin(ak types.AccountKeeper, bk types.BankKeeper, k keepe
 		txCtx := simulation.OperationInput{
 			R:             r,
 			App:           app,
-			TxGen:         simappparams.MakeTestEncodingConfig().TxConfig,
+			TxGen:         moduletestutil.MakeTestEncodingConfig().TxConfig,
 			Cdc:           nil,
 			Msg:           msg,
 			MsgType:       msg.Type(),
