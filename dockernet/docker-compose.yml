@@ -1,0 +1,31 @@
+version: "3"
+services:
+  simd1:
+    image: simd:debug
+    volumes:
+      - ./state/simd1:/home/simd/.simapp
+    ports:
+      - "26657:26657"
+      - "1317:1317"
+      - "9090:9090"
+
+  simd2:
+    image: simd:debug
+    volumes:
+      - ./state/simd2:/home/simd/.simapp
+
+  simd3:
+    image: simd:debug
+    volumes:
+      - ./state/simd3:/home/simd/.simapp
+
+  simd4:
+    image: simd:debug
+    volumes:
+      - ./state/simd4:/home/simd/.simapp
+    ports:
+      - "26557:26657"
+      - "1307:1317"
+      - "9080:9090"
+
+ 
