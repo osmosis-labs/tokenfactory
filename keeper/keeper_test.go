@@ -6,12 +6,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cometbft/cometbft/crypto/ed25519"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmtypes "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
-	"github.com/tendermint/tendermint/crypto/ed25519"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtypes "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -98,7 +98,7 @@ func (s *KeeperTestSuite) TestCreateModuleAccount() {
 	app := s.App
 
 	// setup new next account number
-	nextAccountNumber := app.AccountKeeper.GetNextAccountNumber(s.Ctx)
+	nextAccountNumber := app.AccountKeeper.NextAccountNumber(s.Ctx)
 
 	// remove module account
 	tokenfactoryModuleAccount := app.AccountKeeper.GetAccount(s.Ctx, app.AccountKeeper.GetModuleAddress(types.ModuleName))
