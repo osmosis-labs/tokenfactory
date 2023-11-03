@@ -16,7 +16,7 @@ RPC_PORT=$(GET_VAR_VALUE    ${CHAIN}_RPC_PORT)
 NUM_NODES=$(GET_VAR_VALUE   ${CHAIN}_NUM_NODES)
 NODE_PREFIX=$(GET_VAR_VALUE ${CHAIN}_NODE_PREFIX)
 VAL_PREFIX=$(GET_VAR_VALUE  ${CHAIN}_VAL_PREFIX)
-# THe host zone can optionally specify additional the micro-denom granularity
+# The host zone can optionally specify additional the micro-denom granularity
 # If they don't specify the ${CHAIN}_MICRO_DENOM_UNITS variable,
 # EXTRA_MICRO_DENOM_UNITS will include 6 0's
 MICRO_DENOM_UNITS_VAR_NAME=${CHAIN}_MICRO_DENOM_UNITS
