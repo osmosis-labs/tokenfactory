@@ -56,7 +56,7 @@ VAL_MNEMONICS=(
     "$VAL_MNEMONIC_4"
     "$VAL_MNEMONIC_5"
 )
-REV_MNEMONIC="tonight bonus finish chaos orchard plastic view nurse salad regret pause awake link bacon process core talent whale million hope luggage sauce card weasel"
+
 USER_MNEMONIC="brief play describe burden half aim soccer carbon hope wait output play vacuum joke energy crucial output mimic cruise brother document rail anger leaf"
 USER_ACCT=user
 
