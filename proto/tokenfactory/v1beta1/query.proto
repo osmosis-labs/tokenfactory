@@ -22,7 +22,7 @@ service Query {
   rpc DenomAuthorityMetadata(QueryDenomAuthorityMetadataRequest)
       returns (QueryDenomAuthorityMetadataResponse) {
     option (google.api.http).get =
-        "/osmosis/tokenfactory/v1beta1/denoms/{denom}/authority_metadata";
+        "/osmosis/tokenfactory/v1beta1/denoms/authority_metadata";
   }
 
   // DenomsFromCreator defines a gRPC query method for fetching all
