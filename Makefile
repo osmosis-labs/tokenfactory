@@ -349,10 +349,10 @@ benchmark:
 ###############################################################################
 
 build-docker:
-	@bash $(DOCKERNET_HOME)/build.sh
+	@bash $(DOCKERNET_HOME)/src/build.sh
 
 start-docker: stop-docker
-	@bash $(DOCKERNET_HOME)/start_network.sh
+	@bash $(DOCKERNET_HOME)/src/start_network.sh
 
 clean-docker:
 	@docker-compose -f $(DOCKERNET_COMPOSE_FILE) stop
@@ -361,5 +361,5 @@ clean-docker:
 	docker image prune -a
 
 stop-docker:
-	@bash $(DOCKERNET_HOME)/pkill.sh
+	@bash $(DOCKERNET_HOME)/src/pkill.sh
 	docker-compose -f $(DOCKERNET_COMPOSE_FILE) down

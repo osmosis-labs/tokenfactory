@@ -12,9 +12,9 @@ mkdir -p $STATE
 mkdir -p $LOGS
 
 # Initialize the state for each chain
-bash $SRC/init_chain.sh SIMD
+bash $SCRIPT_DIR/init_chain.sh SIMD
 
 
 # Start each chain, create the transfer channels and start the relayers
-bash $SRC/start_chain.sh 
+bash $SCRIPT_DIR/start_chain.sh 
 

@@ -3,7 +3,7 @@
 set -eu 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-source ${SCRIPT_DIR}/../config.sh
+source ${SCRIPT_DIR}/config.sh
 
 num_nodes=$(GET_VAR_VALUE SIMD_NUM_NODES)
 node_prefix=$(GET_VAR_VALUE SIMD_NODE_PREFIX)

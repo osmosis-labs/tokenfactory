@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source dockernet/config.sh
+source dockernet/src/config.sh
 
 RED=$(echo -en "\e[31m")
 NORMAL=$(echo -en "\e[00m")

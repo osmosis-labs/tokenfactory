@@ -1,7 +1,7 @@
 #!/bin/bash
 
 set -eu
-DOCKERNET_HOME=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+DOCKERNET_HOME=dockernet
 
 STATE=$DOCKERNET_HOME/state
 LOGS=$DOCKERNET_HOME/logs
