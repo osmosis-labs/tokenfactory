@@ -94,15 +94,6 @@ for (( i=1; i <= $NUM_NODES; i++ )); do
     # Add this account to the current node
     $cmd add-genesis-account ${val_addr} ${VAL_TOKENS}${DENOM}
 
-    # Copy over the provider simd validator keys to the provider (in the event
-    # that we are testing ICS)
-    if [[ $CHAIN == "GAIA" && -d $DOCKERNET_HOME/state/${SIMD_NODE_PREFIX}${i} ]]; then
-        simd_config=$DOCKERNET_HOME/state/${SIMD_NODE_PREFIX}${i}/config
-        host_config=$DOCKERNET_HOME/state/${NODE_PREFIX}${i}/config
-        cp ${simd_config}/priv_validator_key.json ${host_config}/priv_validator_key.json
-        cp ${simd_config}/node_key.json ${host_config}/node_key.json
-    fi
-
     # Only generate the validator txs for host chains
     $cmd gentx $val_acct ${STAKE_TOKENS}${DENOM} --chain-id $CHAIN_ID --keyring-backend test &> /dev/null
     
