@@ -134,7 +134,6 @@ for (( i=1; i <= $NUM_NODES; i++ )); do
 done
 
 # add a staker account for integration tests
-# the account should live on both stride and the host chain
 echo "$USER_MNEMONIC" | $MAIN_CMD keys add $USER_ACCT --recover --keyring-backend=test >> $KEYS_LOGS 2>&1
 USER_ADDRESS=$($MAIN_CMD keys show $USER_ACCT --keyring-backend test -a)
 $MAIN_CMD add-genesis-account ${USER_ADDRESS} ${USER_TOKENS}${DENOM}
