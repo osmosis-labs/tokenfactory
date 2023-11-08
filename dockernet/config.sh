@@ -14,11 +14,6 @@ SIMD_LOGS=$LOGS/simd.log
 TX_LOGS=$DOCKERNET_HOME/logs/tx.log
 KEYS_LOGS=$DOCKERNET_HOME/logs/keys.log
 
-# COIN TYPES
-# Coin types can be found at https://github.com/satoshilabs/slips/blob/master/slip-0044.md
-COSMOS_COIN_TYPE=118
-ETH_COIN_TYPE=60
-TERRA_COIN_TYPE=330
 
 # CHAIN PARAMS
 BLOCK_TIME='1s'
