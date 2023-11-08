@@ -7,7 +7,7 @@
 * The main files that need attention:
     * dockernet/build.sh: build both simd and node binaries for docker
     * dockernet/config.sh: contains config variables
-    * dockernet/tests/integration_tests.sh: contains both test logic here
+    * dockernet/tests/integration_tests.sh: contains test logics here
 
 * Test cases:
     * Make sure any user can create their own denoms.
