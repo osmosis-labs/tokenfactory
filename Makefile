@@ -9,6 +9,8 @@ BUILDDIR ?= $(CURDIR)/build
 DOCKER := $(shell which docker)
 CURRENT_DIR = $(shell pwd)
 #SHELL := /bin/bash
+DOCKERNET_HOME=./dockernet
+DOCKERNET_COMPOSE_FILE=$(DOCKERNET_HOME)/docker-compose.yml
 
 # Go version to be used in docker images
 GO_VERSION := $(shell cat go.mod | grep -E 'go [0-9].[0-9]+' | cut -d ' ' -f 2)
@@ -334,6 +336,30 @@ test-rosetta:
 	docker-compose -f contrib/rosetta/docker-compose.yaml up --abort-on-container-exit --exit-code-from test_rosetta --build
 .PHONY: test-rosetta
 
+test-integration-docker:
+	bash $(DOCKERNET_HOME)/tests/run_all_tests.sh
+.PHONY: test-integration-docker
+
 benchmark:
 	@go test -mod=readonly -bench=. $(PACKAGES_NOSIMULATION)
 .PHONY: benchmark
+
+###############################################################################
+###                                DockerNet                                ###
+###############################################################################
+
+build-docker:
+	@bash $(DOCKERNET_HOME)/src/build.sh
+
+start-docker: stop-docker
+	@bash $(DOCKERNET_HOME)/src/start_network.sh
+
+clean-docker:
+	@docker-compose -f $(DOCKERNET_COMPOSE_FILE) stop
+	@docker-compose -f $(DOCKERNET_COMPOSE_FILE) down
+	rm -rf $(DOCKERNET_HOME)/state
+	docker image prune -a
+
+stop-docker:
+	@bash $(DOCKERNET_HOME)/src/pkill.sh
+	docker-compose -f $(DOCKERNET_COMPOSE_FILE) down

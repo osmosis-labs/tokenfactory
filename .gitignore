@@ -2,7 +2,7 @@
 # Created by https://www.toptal.com/developers/gitignore/api/intellij,vscode,macos,windows
 # Edit at https://www.toptal.com/developers/gitignore?templates=intellij,vscode,macos,windows
 
-build
+build/
 **/*/node_modules
 
 ### Go ###
@@ -255,3 +255,7 @@ docs/protocol/book
 
 # Release folder
 dist/
+
+# Dockernet
+dockernet/state/
+dockernet/logs/
