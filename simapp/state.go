@@ -20,6 +20,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	sdkmath "cosmossdk.io/math"
 )
 
 // AppStateFn returns the initial application state using a genesis or the simulation parameters.
@@ -146,10 +147,14 @@ func AppStateRandomizedFn(
 
 	// generate a random amount of initial stake coins and a random initial
 	// number of bonded accounts
-	var initialStake, numInitiallyBonded int64
+	var (
+		numInitiallyBonded int64
+		initialStake       sdkmath.Int
+	)
+
 	appParams.GetOrGenerate(
 		cdc, simappparams.StakePerAccount, &initialStake, r,
-		func(r *rand.Rand) { initialStake = r.Int63n(1e12) },
+		func(r *rand.Rand) { initialStake = sdkmath.NewInt(r.Int63n(1e12)) },
 	)
 	appParams.GetOrGenerate(
 		cdc, simappparams.InitiallyBondedValidators, &numInitiallyBonded, r,

@@ -129,7 +129,7 @@ func NewChangeAdminCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "change-admin [denom] [new-admin-address]",
 		Short: "Changes the admin address for a factory-created denom. Must have admin authority to do so.",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {

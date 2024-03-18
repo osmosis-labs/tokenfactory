@@ -27,6 +27,7 @@ func GetQueryCmd() *cobra.Command {
 	cmd.AddCommand(
 		GetCmdDenomAuthorityMetadata(),
 		GetCmdDenomsFromCreator(),
+		GetCmdParams(),
 	)
 
 	return cmd
@@ -77,6 +78,33 @@ func GetCmdDenomsFromCreator() *cobra.Command {
 			res, err := queryClient.DenomsFromCreator(cmd.Context(), &types.QueryDenomsFromCreatorRequest{
 				Creator: args[0],
 			})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func GetCmdParams() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "params",
+		Args:  cobra.ExactArgs(0),
+		Short: "Returns parameters of tokenfactory module",
+		Long:  "Returns parameters of tokenfactory module",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+			res, err := queryClient.Params(cmd.Context(), &types.QueryParamsRequest{})
 			if err != nil {
 				return err
 			}

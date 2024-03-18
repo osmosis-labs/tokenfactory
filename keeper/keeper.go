@@ -7,6 +7,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 
 	"github.com/osmosis-labs/tokenfactory/types"
 
@@ -15,7 +16,7 @@ import (
 
 type (
 	Keeper struct {
-		storeKey sdk.StoreKey
+		storeKey storetypes.StoreKey
 
 		paramSpace paramtypes.Subspace
 
@@ -29,7 +30,7 @@ type (
 
 // NewKeeper returns a new instance of the x/tokenfactory keeper
 func NewKeeper(
-	storeKey sdk.StoreKey,
+	storeKey storetypes.StoreKey,
 	paramSpace paramtypes.Subspace,
 	accountKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
